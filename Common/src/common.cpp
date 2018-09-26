@@ -1,25 +1,41 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <windows.h>
 
 #include "common/common.h"
 
-std::string common::getPipeNameFromArgs(int argc, char* argv[])
-{
-    std::string pipePrefix = "-pipe=";
-    std::string argument = "";
-    std::string pipeName = "Assignment";
+using namespace std;
 
-    for (int i = 1; i < argc; ++i) 
+void common::ReadConfigFile()
+// Simple routine to read config file and set variables
+{
+    ifstream inFile;
+
+    inFile.open("..\\..\\..\\config.txt");
+
+    if (!inFile)
     {
-        argument = argv[i];
-        // std::cout << "Argv[ " << i << "] = " << argument << std::endl; 
-        if (argument.substr(0, pipePrefix.size()) == pipePrefix)
+        inFile.open("config.txt");
+        if(!inFile)
         {
-            pipeName = argument.substr(pipePrefix.size());
+            cerr << "Unable to open file config.txt on project root";
+            exit(1);
         }
     }
 
-    pipeName = "\\\\.\\pipe\\"+pipeName;
-    std::cout << "Pipe name will be " << pipeName << std::endl;
-    return pipeName;
+    string val = "";
+
+    while (inFile >> val)
+    {
+        cout << "Read :" << val << endl;
+        // if (val.substr(0, pipePrefix.size()) == pipePrefix)
+        // {
+        //     pipeName = val.substr(pipePrefix.size()+1, val.size()-pipePrefix.size()-2);
+        //     cout<<pipeName<<endl;
+        //     cout << typeid(pipeName).name() << endl;
+        // }
+    }
+
+    inFile.close();
 }
