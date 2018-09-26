@@ -15,3 +15,7 @@ file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/*.cpp")
 include_directories("${PROJECT_INCLUDE_DIR}")
 
 add_executable(ServerApp ${SOURCES})
+
+target_link_libraries(${PROJECT_NAME}
+    commonLib
+)
