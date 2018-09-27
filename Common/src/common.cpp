@@ -2,12 +2,39 @@
 #include <string>
 #include <fstream>
 #include <windows.h>
+#include <iterator>
 
 #include "common/common.h"
 
-using namespace std;
 
-void common::ReadConfigFile()
+CommonLib::CommonLib()
+{
+    commandList = {"AsyncHello", "SyncedHello", "SendName", "SendAge", "CreatePlayerProfile", "PlayerWalk", "PlayerSleep"};
+}
+
+bool CommonLib::CommandExists(const string &value)
+{
+    return find(commandList.begin(), commandList.end(), value) != commandList.end();
+}
+
+string CommonLib::GetCommand(const int &val)
+{
+    return commandList[val];
+}
+
+string CommonLib::GetCommandListAsString()
+{
+    string result = "";
+    for(int i = 0; i < int(commandList.size()); i++)
+    {
+        result += commandList[i];
+        if(i != commandList.size() - 1 )
+            result += ", ";
+    }
+    return result;
+}
+
+void CommonLib::ReadConfigFile()
 // Simple routine to read config file and set variables
 {
     ifstream inFile;

@@ -3,18 +3,22 @@
 
 #include "common/common.h"
 
-using namespace std;
-
 int main(int argc, char* argv[])
 {
-    printf("Hello, CMake Server!\n");
-  
-    // pipeName = TEXT("\\\\.\\pipe\\mynamedpipe"); 
-    // Creating Named Pipe
-    HANDLE hCreateNamedPipe;
-    DWORD szPipeBuffer = BUFFER_SIZE*sizeof(TCHAR);
+    //Main Vars
 
-    hCreateNamedPipe = CreateNamedPipeA(
+    HANDLE hCreateNamedPipe = INVALID_HANDLE_VALUE; //NamdePipe Handle
+    BOOL bConnectNamedPipe = FALSE; //Connection bool
+    HANDLE hThread = NULL; //NamdePipe Handle
+
+
+
+    printf("Hello, CMake Server!\n");
+
+        
+    DWORD szPipeBuffer = BUFFER_SIZE*sizeof(TCHAR);//Size of pipe buffer
+    // Creating Named Pipe
+    hCreateNamedPipe = CreateNamedPipe(
                         PIPE_NAME,
                         OPEN_MODE,
                         PIPE_MODE,
@@ -35,7 +39,14 @@ int main(int argc, char* argv[])
 
     // Connecting to Named Pipe
 
-    
+    bConnectNamedPipe = ConnectNamedPipe(hCreateNamedPipe, NULL);
+    if (bConnectNamedPipe)
+    {
+        cout << "Connection Failed & Error No - " << GetLastError() << endl;
+        return -1;
+    }
+    cout << "Connected successfully = " << endl;
+
 
     return 0;
 }
