@@ -22,7 +22,9 @@ class CommonLib
 
         void ReadConfigFile();
 
-        bool CommandExists(const string &value);
+        int CommandExists(const string &value);
         string GetCommandListAsString();
         string GetCommand(const int &val);
+
+        TCHAR* StringToTCHAR(const string &value);
 };

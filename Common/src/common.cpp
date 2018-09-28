@@ -12,9 +12,26 @@ CommonLib::CommonLib()
     commandList = {"AsyncHello", "SyncedHello", "SendName", "SendAge", "CreatePlayerProfile", "PlayerWalk", "PlayerSleep"};
 }
 
-bool CommonLib::CommandExists(const string &value)
+int CommonLib::CommandExists(const string &value)
 {
-    return find(commandList.begin(), commandList.end(), value) != commandList.end();
+    int iCommand = -1;
+    
+    try
+    {
+        iCommand = stoi(value);
+        if (iCommand != -1 && iCommand < (int)commandList.size())
+            return iCommand;
+    }
+    catch(const invalid_argument& e)
+    {
+        vector<string>::iterator position = find(commandList.begin(), commandList.end(), value);
+        if (position != commandList.end())
+            iCommand = distance(commandList.begin(), position);
+            if(iCommand < (int) commandList.size() && iCommand >= 0)
+                return iCommand;
+    }
+    std::cerr << "Invalid command! " << '\n';
+    return -1;
 }
 
 string CommonLib::GetCommand(const int &val)
@@ -28,6 +45,7 @@ string CommonLib::GetCommandListAsString()
     for(int i = 0; i < int(commandList.size()); i++)
     {
         result += commandList[i];
+        result += "(" + to_string(i) + ")";
         if(i != commandList.size() - 1 )
             result += ", ";
     }
@@ -65,4 +83,12 @@ void CommonLib::ReadConfigFile()
     }
 
     inFile.close();
+}
+
+TCHAR* CommonLib::StringToTCHAR(const string &value){
+    TCHAR *myTCHAR = new TCHAR[value.size()+1];
+    myTCHAR[value.size()] = 0;
+
+    copy(value.begin(), value.end(), myTCHAR);
+    return myTCHAR;
 }
