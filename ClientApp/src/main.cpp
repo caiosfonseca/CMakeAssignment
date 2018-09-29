@@ -8,7 +8,15 @@
 // https://docs.microsoft.com/en-us/windows/desktop/ipc/named-pipe-client
 // https://docs.microsoft.com/en-us/windows/desktop/ipc/transactions-on-named-pipes
 
-bool SyncedMessage(TCHAR* command, const TCHAR *args[]);
+struct CommandAndArgs
+{
+    TCHAR* command;
+    vector<TCHAR*> args;
+};
+
+bool SyncedMessage(TCHAR* command, vector<TCHAR*> args);
+bool ASyncedMessage(TCHAR* command, vector<TCHAR*> args);
+DWORD WINAPI InstanceThread(LPVOID);
 
 int _tmain(int argc, TCHAR *argv[])
 {
@@ -38,10 +46,11 @@ int _tmain(int argc, TCHAR *argv[])
             switch(commandIndex){
                 case 0:
                     cout << "Asynced Hello" << endl;
+                    bSuccess = ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {});
                     break;
                 case 1:
                     cout << "Synced Hello" << endl;
-                    bSuccess = SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(1)), {});
+                    bSuccess = SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {});
                     break;
                 case 2:
                     cout << "Send Name" << endl;
@@ -73,12 +82,13 @@ int _tmain(int argc, TCHAR *argv[])
     return 0;
 }
 
-bool SyncedMessage(TCHAR* command, const TCHAR *args[]){
+bool SyncedMessage(TCHAR* command, vector<TCHAR*> args)
+{
     
     bool success = false;
     TCHAR chReadBuf[PIPE_BUFFER_SIZE]; 
 
-    TCHAR* treatedArgs = "";
+    TCHAR* treatedArgs = "";    
 
     LPTSTR lpszMessage = TEXT("");
     CommonLib cObj;
@@ -102,14 +112,57 @@ bool SyncedMessage(TCHAR* command, const TCHAR *args[]){
  
     if (success || GetLastError() == ERROR_MORE_DATA) 
     { 
-        _tprintf( TEXT("Server: %s\n"), chReadBuf ); 
+        _tprintf( TEXT("\nServer: %s\n"), chReadBuf ); 
         
         // The pipe is closed; no more data can be read. 
     
-        if (! success) 
+        if (!success) 
         {
             printf("\nExtra data in message was lost\n"); 
         }
     } 
     return success;
+}
+
+bool ASyncedMessage(TCHAR* command, vector<TCHAR*> args)
+{
+    bool success = FALSE;
+
+    HANDLE hThread = NULL;     // Thread Handle
+    DWORD dwThreadId = 0;      // Sore thread ID
+
+    struct CommandAndArgs* data = new CommandAndArgs;
+    data->command = command;
+    data->args = args;
+
+    hThread = CreateThread(
+        NULL,                           // No security attribute
+        0,                              // Default stack size
+        InstanceThread,                 // Thread Process
+        (LPVOID) data,      // Thread Parameter
+        0,                              // Not suspended
+        &dwThreadId                     // Returns thread ID
+    );
+
+    return success;
+}
+
+DWORD WINAPI InstanceThread(LPVOID lpvParam)
+{
+    HANDLE hHeap = GetProcessHeap();
+    struct CommandAndArgs* data = (struct CommandAndArgs*) lpvParam;
+
+    if(data == NULL)
+    {
+        _tprintf("   Client Failure:");
+        _tprintf("   Instance Thread got and unexpected NULL value in lpvParam");
+        _tprintf("   Instance Thread exiting");
+        return (DWORD)-1;
+    }
+
+    bool fSuccess = false;
+
+    fSuccess = SyncedMessage(data->command, data->args);
+
+    return 1;
 }

@@ -92,7 +92,7 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam)
 {
     HANDLE hHeap = GetProcessHeap();
     TCHAR* pchRequest = (TCHAR*)HeapAlloc(hHeap, 0, PIPE_BUFFER_SIZE);
-    TCHAR * pchReply = (TCHAR*)HeapAlloc(hHeap, 0, PIPE_BUFFER_SIZE);
+    TCHAR* pchReply = (TCHAR*)HeapAlloc(hHeap, 0, PIPE_BUFFER_SIZE);
 
     DWORD cbBytesRead = 0, cbReplyBytes = 0, cbWritten = 0;
     BOOL fSuccess = FALSE;
@@ -203,8 +203,13 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
     CommonLib cObj;
     string response = "default answer from server";
 
-    if(pchRequest == cObj.GetCommand(1)){
-        response = "Synchronized Hello!";
+    if(pchRequest == cObj.GetCommand(0))
+    {
+        response = "Asynchronized Hello brother!";
+    }
+    else if(pchRequest == cObj.GetCommand(1))
+    {
+        response = "I salute you with a Synchronized Hello!";
     }
 
     // Check the outgoing message to make sure it's not too long for the buffer.
