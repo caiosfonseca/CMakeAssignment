@@ -5,122 +5,201 @@
 
 #include "common/common.h"
 
+// Multithreaded pipe server based of Microsoft's
+// https://docs.microsoft.com/en-us/windows/desktop/ipc/multithreaded-pipe-server
+
+DWORD WINAPI InstanceThread(LPVOID);
 VOID GetAnswerToRequest( LPTSTR pchRequest, LPTSTR pchReply, LPDWORD pchBytes );
+VOID serverPrint(string Messages, bool isError = FALSE);
 
-int main(int argc, char* argv[])
+int _tmain(int argc, char* argv[])
 {
-    //Main Vars
+    //Defining vars
+    HANDLE hCreateNamedPipe = INVALID_HANDLE_VALUE; // NamdePipe Handle
+    BOOL bConnectNamedPipe = FALSE;                 // Connection bool
+    HANDLE hThread = NULL;                          // Thread Handle
+    DWORD dwThreadId = 0;                           // Sore thread ID
 
-    HANDLE hCreateNamedPipe = INVALID_HANDLE_VALUE; //NamdePipe Handle
-    BOOL bConnectNamedPipe = FALSE; //Connection bool
-    HANDLE hThread = NULL; //NamdePipe Handle
+    serverPrint("Hello, CMake Server!");
 
+    // The main loop runs an infinite for loop.
+    // For each loop's iteraction, a NamedPipe instance is created and waits for a client connection
+    // Once it connects, it creates a thread to handle communication and continues the loop,
+    // Effectively waiting for the next connection.
+    // This allows multiple clients and also for them to work simultaneously.
 
+    for(;;)
+    {
+        serverPrint( (string("* Main thread awaiting client connection on ") + PIPE_NAME) );
+        // Creating named pipe
+        hCreateNamedPipe = CreateNamedPipe(
+                            PIPE_NAME,
+                            OPEN_MODE,
+                            PIPE_MODE,
+                            INSTANCES,
+                            PIPE_BUFFER_SIZE,
+                            PIPE_BUFFER_SIZE,
+                            PIPE_TIMEOUT,
+                            NULL
+        );
 
-    printf("Hello, CMake Server!\n");
+        if (hCreateNamedPipe == INVALID_HANDLE_VALUE)
+        {
+            serverPrint( string("CreateNamedPipe failed, Error = ") +  to_string(GetLastError()), true );
+            return -1;
+        }
+        serverPrint( string("Created Named Pipe with success") );
 
+        bConnectNamedPipe = ConnectNamedPipe(hCreateNamedPipe, NULL) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED); 
+        // Accoding to documentation:  It is possible for a pipe client to connect successfully to the pipe instance in the interval between
+        // calls to the CreateNamedPipe and ConnectNamedPipe functions. If this happens, ConnectNamedPipe returns zero, and GetLastError
+        // returns ERROR_PIPE_CONNECTED.
         
-    DWORD szPipeBuffer = BUFFER_SIZE*sizeof(TCHAR);//Size of pipe buffer
-    // Creating Named Pipe
-    hCreateNamedPipe = CreateNamedPipe(
-                        PIPE_NAME,
-                        OPEN_MODE,
-                        PIPE_MODE,
-                        INSTANCES,
-                        szPipeBuffer,
-                        szPipeBuffer,
-                        PIPE_TIMEOUT,
-                        NULL
-    );
+        if(bConnectNamedPipe)
+        {
+            serverPrint("Client connected, creating a processing thread");
 
-    if(hCreateNamedPipe == INVALID_HANDLE_VALUE)
-    {
-        cout << "Named Pipe creation failed, error = " << GetLastError() << endl;
-        return -1;
+            // Create a thread for this client
+            hThread = CreateThread(
+                NULL,                           // No security attribute
+                0,                              // Default stack size
+                InstanceThread,                 // Thread Process
+                (LPVOID) hCreateNamedPipe,      // Thread Parameter
+                0,                              // Not suspended
+                &dwThreadId                     // Returns thread ID
+            );
+
+            if (hThread == NULL)
+            {
+                serverPrint( string("Create Thread Failed, Error = ") + to_string(GetLastError()), true );
+                return -1;
+            }
+            else 
+                // Close thread if there was a problem with creation
+                CloseHandle(hThread);
+        }
+        else
+        {
+            // Closes the pipe if client couldn't connect
+            serverPrint("Client couldn't connect", true);
+            CloseHandle(hCreateNamedPipe);
+        }
     }
+    return 0;
+}
 
-    cout << "Named Pipe created with success " << endl;
+DWORD WINAPI InstanceThread(LPVOID lpvParam)
+{
+    HANDLE hHeap = GetProcessHeap();
+    TCHAR* pchRequest = (TCHAR*)HeapAlloc(hHeap, 0, PIPE_BUFFER_SIZE);
+    TCHAR * pchReply = (TCHAR*)HeapAlloc(hHeap, 0, PIPE_BUFFER_SIZE);
 
-    // Connecting to Named Pipe
-
-    // Wait for the client to connect; if it succeeds, 
-    // the function returns a nonzero value. If the function
-    // returns zero, GetLastError returns ERROR_PIPE_CONNECTED. 
-    bConnectNamedPipe = ConnectNamedPipe(hCreateNamedPipe, NULL) ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-    if (bConnectNamedPipe)
-    {
-        cout << "Connected successfully = " << endl;
-    }
-    else{
-        cout << "Connection Failed & Error No - " << GetLastError() << endl;
-        CloseHandle(hCreateNamedPipe);
-        return -1;
-    }
-
-    bool fSuccess = false;
-    TCHAR pchRequest [BUFFER_SIZE*sizeof(TCHAR)];
-    TCHAR pchReply [BUFFER_SIZE*sizeof(TCHAR)];
     DWORD cbBytesRead = 0, cbReplyBytes = 0, cbWritten = 0;
-    while (1) 
-    { 
-    // Read client requests from the pipe. This simplistic code only allows messages
-    // up to BUFSIZE characters in length.
-        cout << "Waiting for client message" << endl;
-        fSuccess = ReadFile( 
-            hCreateNamedPipe,        // handle to pipe 
-            pchRequest,    // buffer to receive data 
-            BUFFER_SIZE*sizeof(TCHAR), // size of buffer 
-            &cbBytesRead, // number of bytes read 
-            NULL);        // not overlapped I/O 
+    BOOL fSuccess = FALSE;
+    HANDLE hPipe = NULL;
+
+    // Pipe handle == NULL
+    if(lpvParam == NULL)
+    {
+        serverPrint("   Pipe Server Failure:", true);
+        serverPrint("   Instance Thread got and unexpected NULL value in lpvParam", true);
+        serverPrint("   Instance Thread exiting", true);
+        // Free used memory allocations
+        if ( pchReply != NULL ) HeapFree(hHeap, 0, pchReply);
+        if ( pchRequest != NULL ) HeapFree(hHeap, 0, pchRequest);
+        return (DWORD)-1;
+    }
+
+    // Request == null
+    if(pchRequest == NULL)
+    {
+        serverPrint("   Pipe Server Failure:", true);
+        serverPrint("   Instance Thread got and unexpected NULL heap allocation on pchRequest", true);
+        serverPrint("   Instance Thread exiting", true);
+        // Free used memory allocations
+        if ( pchReply != NULL ) HeapFree(hHeap, 0, pchReply);
+        return (DWORD)-1;
+    }
+
+    if(pchReply == NULL)
+    {
+        serverPrint("   Pipe Server Failure:", true);
+        serverPrint("   Instance Thread got and unexpected NULL heap allocation on pchReply", true);
+        serverPrint("   Instance Thread exiting", true);
+        // Free used memory allocations
+        if ( pchRequest != NULL ) HeapFree(hHeap, 0, pchRequest);
+        return (DWORD)-1;
+    }
+
+    serverPrint("Instance thread created, receiving and processing messages.");
+
+    hPipe = (HANDLE) lpvParam;
+
+    while(1)
+    {
+        //Read client's requests
+        fSuccess = ReadFile(
+            hPipe,              // Handle to Pipe
+            pchRequest,         // Buffer to receive data
+            PIPE_BUFFER_SIZE,   // Size of buffer
+            &cbBytesRead,       // Number of bytes read
+            NULL                // Not overlapped I/O
+        );
 
         if (!fSuccess || cbBytesRead == 0)
-        {   
-            if (GetLastError() == ERROR_BROKEN_PIPE)
+        {
+            if(GetLastError() == ERROR_BROKEN_PIPE)
             {
-                _tprintf(TEXT("InstanceThread: client disconnected. Error = %d\n"), GetLastError()); 
+                serverPrint( string("Instance Thread Client disconnected, Error = ") + to_string(GetLastError()), true );
             }
             else
             {
-                _tprintf(TEXT("InstanceThread ReadFile failed, GLE=%d.\n"), GetLastError()); 
+                serverPrint( string("Instance Thread Read File failed, Error = ") + to_string(GetLastError()), true );
             }
             break;
         }
 
-    // Process the incoming message.
-        cout << "Processing incoming message" << endl;
-        GetAnswerToRequest(pchRequest, pchReply, &cbReplyBytes); 
-    
-    // Write the reply to the pipe. 
-        cout << "Writing response for client" << endl;
-        fSuccess = WriteFile( 
-            hCreateNamedPipe,        // handle to pipe 
-            pchReply,     // buffer to write from 
-            cbReplyBytes, // number of bytes to write 
-            &cbWritten,   // number of bytes written 
-            NULL);        // not overlapped I/O 
+        // Get the respective answer to the client's request
+        GetAnswerToRequest(pchRequest, pchReply, &cbReplyBytes);
 
-        if (!fSuccess || cbReplyBytes != cbWritten)
-        {   
-            _tprintf(TEXT("InstanceThread WriteFile failed, GLE=%d.\n"), GetLastError()); 
+        fSuccess = WriteFile(
+            hPipe,          // Pipe Handle
+            pchReply,       // Buffer to write
+            cbReplyBytes,   // Number of bytes to write
+            &cbWritten,     // Number of bytes written
+            NULL
+        );
+
+        if(!fSuccess || cbReplyBytes != cbWritten)
+        {
+            serverPrint( string("Instance Thread Write File failed, Error = ") + to_string(GetLastError()), true );
             break;
         }
     }
 
+    // Flushing pipe buffers to allow client reading before disconnection.
+    // Then, disconnect and close this pipe instance.
 
-    return 0;
+    FlushFileBuffers(hPipe);
+    DisconnectNamedPipe(hPipe);
+    CloseHandle(hPipe);
+
+    HeapFree(hHeap, 0, pchRequest);
+    HeapFree(hHeap, 0, pchReply);
+
+    serverPrint("Instance Thread exitting.");
+    return 1;
 }
 
 
 VOID GetAnswerToRequest( LPTSTR pchRequest, 
                          LPTSTR pchReply, 
                          LPDWORD pchBytes )
-// This routine is a simple function to print the client request to the console
-// and populate the reply buffer with a default data string. This is where you
-// would put the actual client request processing code that runs in the context
-// of an instance thread. Keep in mind the main thread will continue to wait for
-// and receive other client connections while the instance thread is working.
+// Here we will deal with the client's request, and create the appropriate answer
+// This will block the pipe thread, but not the main pipe thread, meaning that both
+// the client and server can continue to work together while this function is running.
 {
-    _tprintf( TEXT("Client Request String:\"%s\"\n"), pchRequest );
+    serverPrint((string ("CLIENT REQUEST String:\"%s\"\n"), pchRequest) );
     CommonLib cObj;
     string response = "default answer from server";
 
@@ -133,8 +212,19 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
     {
         *pchBytes = 0;
         pchReply[0] = 0;
-        printf("StringCchCopy failed, no outgoing message.\n");
+        serverPrint("StringCchCopy failed, no outgoing message.", true);
         return;
     }
     *pchBytes = (lstrlen(pchReply)+1)*sizeof(TCHAR);
+}
+
+
+VOID serverPrint(string Message, bool isError)
+{
+    // Pretty simple print function for logs and errors
+    string Log = "Log";
+    if (isError)
+        Log = "ERROR";
+        
+    _tprintf("Server %s: %s\n", Log.c_str(), Message.c_str());
 }

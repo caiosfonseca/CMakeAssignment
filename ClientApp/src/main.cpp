@@ -4,13 +4,17 @@
 
 #include "common/common.h"
 
+// Client pipe based of Microsoft's
+// https://docs.microsoft.com/en-us/windows/desktop/ipc/named-pipe-client
+// https://docs.microsoft.com/en-us/windows/desktop/ipc/transactions-on-named-pipes
+
 bool SyncedMessage(TCHAR* command, const TCHAR *args[]);
 
 int _tmain(int argc, TCHAR *argv[])
 {
     printf("Hello, CMake Client!\n");
     LPTSTR lpszWrite = TEXT("Default message");
-    char command[BUFFER_SIZE*sizeof(TCHAR)];
+    char command[PIPE_BUFFER_SIZE];
     char quit[] = "Exit";
 
     CommonLib cObj;
@@ -22,43 +26,43 @@ int _tmain(int argc, TCHAR *argv[])
         //Get client's desired command
         cout << "Choose a command from: " << availableCommands << ", " << quit << endl;
         cin.getline(command, BUFFER_SIZE);
+        if (strcmp (command,quit) == 0)
+            return 0;
 
         bSuccess = FALSE;
         commandIndex = cObj.CommandExists(command);
         
         if (commandIndex >= 0)
         {
-            if(commandIndex == 0)//AsyncedHello
-            {
-                cout << "Asynced Hello" << endl;
+            cout << "Client Running: " ;
+            switch(commandIndex){
+                case 0:
+                    cout << "Asynced Hello" << endl;
+                    break;
+                case 1:
+                    cout << "Synced Hello" << endl;
+                    bSuccess = SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(1)), {});
+                    break;
+                case 2:
+                    cout << "Send Name" << endl;
+                    break;
+                case 3:
+                    cout << "Send Age" << endl;
+                    break;
+                case 4:
+                    cout << "Create Player Profile" << endl;
+                    break;
+                case 5:
+                    cout << "Player Walk" << endl;
+                    break;
+                case 6:
+                    cout << "Player Sleep" << endl;
+                    break;
+                default:
+                    break;
             }
-            else if(commandIndex == 1)//SyncedHello
-            {
-                cout << "Synced Hello" << endl;
-                bSuccess = SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(1)), {});
-                cout << "Success = " << bSuccess << endl;
-            }
-            else if(commandIndex == 2)//SendName
-            {
-                cout << "Send Name" << endl;
-            }
-            else if(commandIndex == 3)//SendAge
-            {
-                cout << "Send Age" << endl;
-            }
-            else if(commandIndex == 4)//CreatePlayerProfile
-            {
-                cout << "Create Player Profile" << endl;
-            }
-            else if(commandIndex == 5)//PlayerWalk
-            {
-                cout << "Player Walk" << endl;
-            }
-            else if(commandIndex == 6)//PlayerSleep
-            {
-                cout << "Player Sleep" << endl;
-            }
-            //Execute the appropriate command
+            cout << endl;
+            cout << "Success = " << bSuccess << endl;
         }
         
         
@@ -72,7 +76,7 @@ int _tmain(int argc, TCHAR *argv[])
 bool SyncedMessage(TCHAR* command, const TCHAR *args[]){
     
     bool success = false;
-    TCHAR chReadBuf[BUFFER_SIZE*sizeof(TCHAR)]; 
+    TCHAR chReadBuf[PIPE_BUFFER_SIZE]; 
 
     TCHAR* treatedArgs = "";
 
@@ -91,14 +95,14 @@ bool SyncedMessage(TCHAR* command, const TCHAR *args[]){
         lpszMessage,           // message to server 
         (lstrlen(lpszMessage)+1)*sizeof(TCHAR), // message length 
         chReadBuf,              // buffer to receive reply 
-        BUFFER_SIZE*sizeof(TCHAR),  // size of read buffer 
+        PIPE_BUFFER_SIZE,  // size of read buffer 
         &cbRead,                // number of bytes read 
         PIPE_TIMEOUT
     );                 // waits for 20 seconds 
  
     if (success || GetLastError() == ERROR_MORE_DATA) 
     { 
-        _tprintf( TEXT("%s\n"), chReadBuf ); 
+        _tprintf( TEXT("Server: %s\n"), chReadBuf ); 
         
         // The pipe is closed; no more data can be read. 
     
