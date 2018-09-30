@@ -14,9 +14,10 @@ struct CommandAndArgs
     vector<TCHAR*> args;
 };
 
-bool SyncedMessage(TCHAR* command, vector<TCHAR*> args);
-bool ASyncedMessage(TCHAR* command, vector<TCHAR*> args);
+void SyncedMessage(TCHAR* command, vector<TCHAR*> args);
+void ASyncedMessage(TCHAR* command, vector<TCHAR*> args);
 DWORD WINAPI InstanceThread(LPVOID);
+int GetIntFromUser();
 
 int _tmain(int argc, TCHAR *argv[])
 {
@@ -27,17 +28,15 @@ int _tmain(int argc, TCHAR *argv[])
 
     CommonLib cObj;
     string availableCommands = cObj.GetCommandListAsString();
-    BOOL bSuccess;
     int commandIndex;
 
     do {
         //Get client's desired command
         cout << "Choose a command from: " << availableCommands << ", " << quit << endl;
-        cin.getline(command, BUFFER_SIZE);
+        cin.getline(command, PIPE_BUFFER_SIZE);
         if (strcmp (command,quit) == 0)
             return 0;
 
-        bSuccess = FALSE;
         commandIndex = cObj.CommandExists(command);
         
         if (commandIndex >= 0)
@@ -45,33 +44,49 @@ int _tmain(int argc, TCHAR *argv[])
             cout << "Client Running: " ;
             switch(commandIndex){
                 case 0:
-                    cout << "Asynced Hello" << endl;
-                    bSuccess = ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {});
+                    {
+                        cout << "Asynced Hello" << endl;
+                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {});
+                    }
                     break;
                 case 1:
                     cout << "Synced Hello" << endl;
-                    bSuccess = SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {});
+                    SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {});
                     break;
                 case 2:
-                    cout << "Send Name" << endl;
+                    {
+                        cout << "Send Name" << endl;
+                        cout << "What name do you want to send?" << endl;
+                        char nameToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(nameToSend, PIPE_BUFFER_SIZE);
+                        cout << "Sending " << nameToSend << endl;
+                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {nameToSend});
+                    }
                     break;
                 case 3:
-                    cout << "Send Age" << endl;
+                    {
+                        cout << "Send Age" << endl;
+                        cout << "How old are you?" << endl;
+                        int age = GetIntFromUser();
+                        char ageToSend[PIPE_BUFFER_SIZE];
+                        sprintf_s(ageToSend, "%d", age);
+                        cout << "Sending " << ageToSend << endl;
+                        SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {ageToSend});
+                    }
                     break;
                 case 4:
-                    cout << "Create Player Profile" << endl;
+                    cout << "Create User Profile" << endl;
                     break;
                 case 5:
-                    cout << "Player Walk" << endl;
+                    cout << "Update Address" << endl;
                     break;
                 case 6:
-                    cout << "Player Sleep" << endl;
+                    cout << "Find User Profile" << endl;
                     break;
                 default:
                     break;
             }
             cout << endl;
-            cout << "Success = " << bSuccess << endl;
         }
         
         
@@ -82,20 +97,27 @@ int _tmain(int argc, TCHAR *argv[])
     return 0;
 }
 
-bool SyncedMessage(TCHAR* command, vector<TCHAR*> args)
+void SyncedMessage(TCHAR* command, vector<TCHAR*> args)
 {
     
     bool success = false;
     TCHAR chReadBuf[PIPE_BUFFER_SIZE]; 
 
-    TCHAR* treatedArgs = "";    
+    string treatedArgs = "";
+
+    
+    for(size_t i = 0; i < args.size(); i++)
+    {
+        treatedArgs += "@" + (string)args[i];
+    }
+        
 
     LPTSTR lpszMessage = TEXT("");
     CommonLib cObj;
 
     string test = command;
-    if (lstrlen(treatedArgs) > 0)
-        test += string(" "), treatedArgs;
+    if (treatedArgs.length() > 0)
+        test += treatedArgs;
     lpszMessage = cObj.StringToTCHAR(test);
     
     DWORD cbRead; 
@@ -121,12 +143,14 @@ bool SyncedMessage(TCHAR* command, vector<TCHAR*> args)
             printf("\nExtra data in message was lost\n"); 
         }
     } 
-    return success;
+    else
+    {
+        _tprintf( TEXT("\nERROR: %d\n"), GetLastError() ); 
+    }
 }
 
-bool ASyncedMessage(TCHAR* command, vector<TCHAR*> args)
+void ASyncedMessage(TCHAR* command, vector<TCHAR*> args)
 {
-    bool success = FALSE;
 
     HANDLE hThread = NULL;     // Thread Handle
     DWORD dwThreadId = 0;      // Sore thread ID
@@ -144,7 +168,6 @@ bool ASyncedMessage(TCHAR* command, vector<TCHAR*> args)
         &dwThreadId                     // Returns thread ID
     );
 
-    return success;
 }
 
 DWORD WINAPI InstanceThread(LPVOID lpvParam)
@@ -160,9 +183,27 @@ DWORD WINAPI InstanceThread(LPVOID lpvParam)
         return (DWORD)-1;
     }
 
-    bool fSuccess = false;
-
-    fSuccess = SyncedMessage(data->command, data->args);
+    SyncedMessage(data->command, data->args);
 
     return 1;
+}
+
+int GetIntFromUser()
+{
+    int age = -1;
+    char answer[PIPE_BUFFER_SIZE];
+    while(age < 0)
+    {
+        cin.getline(answer, PIPE_BUFFER_SIZE);
+        try
+        {
+            age = stoi(answer);
+        }
+        catch(const invalid_argument& e)
+        {
+            cout << "Please, type a valid age!";
+            (void)e;
+        }
+    }
+    return age;
 }

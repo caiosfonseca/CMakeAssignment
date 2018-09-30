@@ -9,7 +9,7 @@
 
 CommonLib::CommonLib()
 {
-    commandList = {"AsyncHello", "SyncedHello", "SendName", "SendAge", "CreatePlayerProfile", "PlayerWalk", "PlayerSleep"};
+    commandList = {"AsyncHello", "SyncedHello", "SendName", "SendAge", "CreateUserProfile", "UpdateAddress", "FindUserProfile"};
 }
 
 int CommonLib::CommandExists(const string &value)
@@ -24,6 +24,7 @@ int CommonLib::CommandExists(const string &value)
     }
     catch(const invalid_argument& e)
     {
+        (void)e;
         vector<string>::iterator position = find(commandList.begin(), commandList.end(), value);
         if (position != commandList.end())
             iCommand = distance(commandList.begin(), position);

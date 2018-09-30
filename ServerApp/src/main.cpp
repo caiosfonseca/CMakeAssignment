@@ -12,6 +12,9 @@ DWORD WINAPI InstanceThread(LPVOID);
 VOID GetAnswerToRequest( LPTSTR pchRequest, LPTSTR pchReply, LPDWORD pchBytes );
 VOID serverPrint(string Messages, bool isError = FALSE);
 
+string lastSentName = "";
+string lastSentAge = "";
+
 int _tmain(int argc, char* argv[])
 {
     //Defining vars
@@ -199,21 +202,82 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
 // This will block the pipe thread, but not the main pipe thread, meaning that both
 // the client and server can continue to work together while this function is running.
 {
-    serverPrint((string ("CLIENT REQUEST String:\"%s\"\n"), pchRequest) );
+    serverPrint(string ("CLIENT REQUEST String: ") + pchRequest );
     CommonLib cObj;
-    string response = "default answer from server";
+    string response = "Command not recognized";
+    size_t firstAt = 0;
+    string request = pchRequest;
+    firstAt = request.find("@");
+    string args = "";
+    size_t nOfArguments = 0;
+    vector<string> treatedArgs;
+    if (firstAt > request.length())
+    {
+        firstAt = request.length();
+    }
+    else
+    {
+        args = request.substr(firstAt+1);
+        nOfArguments = count(request.begin(), request.end(), '@');
+        size_t lastFoundAt = 0;
+        size_t newFoundAt = 0;
+        
+        for(size_t i = 0; i < nOfArguments; i++)
+        {
+            newFoundAt = args.substr(lastFoundAt).find("@");
+            if(newFoundAt > args.length())
+            {
+                newFoundAt = args.length();
+            }
+            treatedArgs.push_back(args.substr(lastFoundAt, newFoundAt));
+            lastFoundAt = newFoundAt;
+        }
+    }
+    request = request.substr(0, firstAt);
 
-    if(pchRequest == cObj.GetCommand(0))
+    serverPrint( "Treated request = " + request );
+
+    if(treatedArgs.size() > 0)
+    {
+        for(size_t i = 0; i < treatedArgs.size(); i++)
+        {
+            serverPrint( "Arg["+ to_string(i) +"] = " + treatedArgs[i] );
+        }        
+    }
+    else
+    {
+        serverPrint("No arguments sent");
+    }
+    
+
+    if(request == cObj.GetCommand(0))
     {
         response = "Asynchronized Hello brother!";
+        if(lastSentName != "")
+            response = "A special Asynchronized Hello for you " + lastSentName;
     }
-    else if(pchRequest == cObj.GetCommand(1))
+    else if(request == cObj.GetCommand(1))
     {
         response = "I salute you with a Synchronized Hello!";
+        if(lastSentName != "")
+            response = "A special handshake for you " + lastSentName;
+    }
+    else if(request == cObj.GetCommand(2))
+    {
+        lastSentName = treatedArgs[0];
+        response = "Oh Hi there, "+lastSentName+", I hope you are doing well!";
+    }
+    else if(request == cObj.GetCommand(3))
+    {
+        lastSentAge = treatedArgs[0];
+        response = "I see, so you are " + lastSentAge + " years old, huh?";
+        if(lastSentName != "")
+            response = "Hey " + lastSentName + " I promise I won't tell that you are " + lastSentAge +" years old";
     }
 
+    serverPrint("Sending = " + response);
     // Check the outgoing message to make sure it's not too long for the buffer.
-    if (FAILED(StringCchCopy( pchReply, BUFFER_SIZE, response.c_str() )))
+    if (FAILED(StringCchCopy( pchReply, PIPE_BUFFER_SIZE, response.c_str() )))
     {
         *pchBytes = 0;
         pchReply[0] = 0;
