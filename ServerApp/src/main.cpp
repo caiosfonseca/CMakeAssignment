@@ -276,33 +276,35 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
     
     // Now, we will deal with the client's request and respond appropriately
     CommonLib cObj;
-    if(request == cObj.GetCommand(0))
+    if(request == cObj.GetCommand(0))// Asynced Hello
     {
         response = "Asynchronized Hello brother!";
         if(lastSentName != "")
             response = "A special Asynchronized Hello for you " + lastSentName;
     }
-    else if(request == cObj.GetCommand(1))
+    else if(request == cObj.GetCommand(1))// Synced Hello
     {
         response = "I salute you with a Synchronized Hello!";
         if(lastSentName != "")
             response = "A special handshake for you " + lastSentName;
     }
-    else if(request == cObj.GetCommand(2))
+    else if(request == cObj.GetCommand(2))// Set user's name
     {
         lastSentName = treatedArgs[0];
         response = "Oh Hi there, "+lastSentName+", I hope you are doing well!";
     }
-    else if(request == cObj.GetCommand(3))
+    else if(request == cObj.GetCommand(3))// Set user's age
     {
         lastSentAge = treatedArgs[0];
         response = "I see, so you are " + lastSentAge + " years old, huh?";
         if(lastSentName != "")
             response = "Hey " + lastSentName + " I promise I won't tell that you are " + lastSentAge +" years old";
     }
-    else if(request == cObj.GetCommand(4))
+    else if(request == cObj.GetCommand(4))// Create a new profile
     {
+        // Creating a blank UserProfile to fill up with the coming data
         UserProfile testUser = UserProfile();
+        // Populate the UserProfile with the treated args
         testUser.Name = treatedArgs[0];
         int age = 0;
         try
@@ -318,15 +320,16 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         lastId += 1;
         testUser.Id = lastId;
 
+        // Add our new user profile to the registered users vector
         registeredUsers.push_back(testUser);
 
+        // Send the new user as reponse
         response = testUser.toString();
-
     }
-    else if(request == cObj.GetCommand(5))
+    else if(request == cObj.GetCommand(5))// Execute birthday function
     {
         size_t requestedId = 0;
-        
+        // Let's try to get the id to search for
         try
         {
             requestedId = stoi(treatedArgs[0]);
@@ -334,14 +337,41 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         catch(const std::exception& e)
         {
             (void) e;
-        }  
+        }
         
+        // Use the given id to search for a user
         UserProfile result = GetUserById(requestedId);
-        cout << result;
-
+        
+        // If the user was found we execute the birthday function and
+        // Give it's return as the response
         response = "No user with such id";
         if(result.Id != 0)
             response = result.BirthDay();
+    }
+    else if(request == cObj.GetCommand(6))// Search for a user given his name
+    {
+        
+    }
+    else if(request == cObj.GetCommand(7))// Get a user given his ID
+    {
+        size_t requestedId = 0;
+        // Let's try to get the id to search for
+        try
+        {
+            requestedId = stoi(treatedArgs[0]);
+        }
+        catch(const std::exception& e)
+        {
+            (void) e;
+        }
+        
+        // Use the given id to search for a user
+        UserProfile result = GetUserById(requestedId);
+        
+        // If the user was found we return him as a response
+        response = "No user with such id";
+        if (result.Id != 0)
+            response = result.toString();
     }
 
     serverPrint("Sending = " + response);

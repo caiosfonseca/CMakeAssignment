@@ -142,6 +142,11 @@ int _tmain(int argc, TCHAR *argv[])
                     {
                         // We will send a Sync request to get a user profile, given an id
                         cout << "Get User Profile" << endl;
+                        cout << "Please input the user's Id you want to get data from" << endl;
+                        int id = GetIntFromUser();
+                        char idToSend[PIPE_BUFFER_SIZE];
+                        sprintf_s(idToSend, "%d", id);
+                        SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {idToSend});
                     }
                     break;
                 default:
