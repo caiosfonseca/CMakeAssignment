@@ -3,6 +3,7 @@
 #include <tchar.h>
 
 #include "common/common.h"
+#include "common/userProfile.h"
 
 // Client pipe based of Microsoft's
 // https://docs.microsoft.com/en-us/windows/desktop/ipc/named-pipe-client
@@ -25,6 +26,13 @@ int _tmain(int argc, TCHAR *argv[])
     LPTSTR lpszWrite = TEXT("Default message");
     char command[PIPE_BUFFER_SIZE];
     char quit[] = "Exit";
+
+    Address testAddress = Address("1316 Carling Ave", "Ottawa", "Canada", "K1Z7L0");
+    cout << testAddress << endl;
+    UserProfile testUser = UserProfile("Caio", 26, testAddress, 0);
+    cout << testUser << endl;
+    testUser.BirthDay();
+    cout << testUser << endl;
 
     CommonLib cObj;
     string availableCommands = cObj.GetCommandListAsString();
