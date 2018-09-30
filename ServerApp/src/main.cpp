@@ -13,6 +13,7 @@ DWORD WINAPI InstanceThread(LPVOID);
 VOID GetAnswerToRequest( LPTSTR pchRequest, LPTSTR pchReply, LPDWORD pchBytes );
 VOID serverPrint(string Messages, bool isError = FALSE);
 UserProfile GetUserById(size_t id);
+string FindUserByName(string name);
 
 string lastSentName = "";
 string lastSentAge = "";
@@ -29,6 +30,14 @@ int _tmain(int argc, char* argv[])
     DWORD dwThreadId = 0;                           // Sore thread ID
 
     serverPrint("Hello, CMake Server!");
+
+    Address testAddress = Address("1316 Carling Ave", "Ottawa", "Canada", "K1Z7L0");
+    Address testAddress2 = Address("316 Bronson Avenue", "Ottawa", "Canada", "K1Z7L1");
+    UserProfile testUser = UserProfile("Caio Souza Fonseca", 26, testAddress, 1);
+    UserProfile testUser2 = UserProfile("Priscila Ferreira de Lima Fonseca", 29, testAddress2, 2);
+
+    registeredUsers.push_back(testUser);
+    registeredUsers.push_back(testUser2);
 
     // The main loop runs an infinite for loop.
     // For each loop's iteraction, a NamedPipe instance is created and waits for a client connection
@@ -350,7 +359,8 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
     }
     else if(request == cObj.GetCommand(6))// Search for a user given his name
     {
-        
+        string requestedName = treatedArgs[0];
+        response = FindUserByName(requestedName);
     }
     else if(request == cObj.GetCommand(7))// Get a user given his ID
     {
@@ -406,4 +416,21 @@ UserProfile GetUserById(size_t id)
             return registeredUsers[i];
     }
     return UserProfile();
+}
+
+string FindUserByName(string name)
+{
+    string result = "User not found";
+    string response = "We found :";
+
+    for(size_t i = 0; i < registeredUsers.size(); i++)
+    {
+        if(registeredUsers[i].Name.find(name) <= registeredUsers[i].Name.length())
+            response += "{ User = "+ registeredUsers[i].Name + " ID = " + to_string(registeredUsers[i].Id) + " Age = " + to_string(registeredUsers[i].Age) + " }\n";
+    }
+
+    if(response != "We found :")
+        result = response;
+
+    return result;
 }

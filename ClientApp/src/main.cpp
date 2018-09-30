@@ -134,8 +134,12 @@ int _tmain(int argc, TCHAR *argv[])
                     break;
                 case 6:
                     {
-                        // We will send a Sync request to find a user profile, given an id
+                        // We will send a Sync request to find a user profile, given a name
                         cout << "Find User Profile" << endl;
+                        cout << "Please input the user's name you want to find (Or part of it) *CASE SENSITIVE" << endl;
+                        char nameToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(nameToSend, PIPE_BUFFER_SIZE);
+                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {nameToSend});
                     }
                     break;
                 case 7:
