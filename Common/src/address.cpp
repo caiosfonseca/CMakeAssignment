@@ -32,3 +32,12 @@ Address& Address::operator=(const Address& other)
     PostalCode = other.PostalCode;
     return *this;
 }
+
+string Address::toString(){
+    string result = "";
+    result += "Street: " + Street + "\n";
+    result += "City: " + City + "\n";
+    result += "Country: " + Country + "\n";
+    result += "PostalCode: " + PostalCode + "\n";
+    return result; 
+}

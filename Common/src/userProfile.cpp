@@ -46,3 +46,12 @@ int UserProfile::BirthDay()
     Age += 1;
     return Age;
 }
+
+string UserProfile::toString(){
+    string result = "";
+    result += "Id: " + to_string(Id) + "\n";
+    result += "Name: " + Name + "\n";
+    result += "Age: " + to_string(Age) + "\n";
+    result += "Address: " + UserAddress.toString() + "\n";
+    return result; 
+}

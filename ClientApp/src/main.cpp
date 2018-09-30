@@ -32,14 +32,6 @@ int _tmain(int argc, TCHAR *argv[])
     string availableCommands = cObj.GetCommandListAsString();
     int commandIndex;
 
-    // Class testing
-    Address testAddress = Address("1316 Carling Ave", "Ottawa", "Canada", "K1Z7L0");
-    cout << testAddress << endl;
-    UserProfile testUser = UserProfile("Caio", 26, testAddress, 0);
-    cout << testUser << endl;
-    testUser.BirthDay();
-    cout << testUser << endl;
-
     do {
         // Run this loop while the client doesn't input "Exit"
         // Get client's desired command
@@ -77,7 +69,6 @@ int _tmain(int argc, TCHAR *argv[])
                         cout << "What name do you want to send?" << endl;
                         char nameToSend[PIPE_BUFFER_SIZE];
                         cin.getline(nameToSend, PIPE_BUFFER_SIZE);
-                        cout << "Sending " << nameToSend << endl;
                         ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {nameToSend});
                     }
                     break;
@@ -91,7 +82,6 @@ int _tmain(int argc, TCHAR *argv[])
                         int age = GetIntFromUser();
                         char ageToSend[PIPE_BUFFER_SIZE];
                         sprintf_s(ageToSend, "%d", age);
-                        cout << "Sending " << ageToSend << endl;
                         SyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {ageToSend});
                     }
                     break;
@@ -100,6 +90,34 @@ int _tmain(int argc, TCHAR *argv[])
                         // We will send an ASync request to create the user profile
                         // passing all args required, after asking them from the user
                         cout << "Create User Profile" << endl;
+                        
+                        cout << "Please input the user's name" << endl;
+                        char nameToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(nameToSend, PIPE_BUFFER_SIZE);
+
+                        cout << "Please input the user's age" << endl;
+                        int age = GetIntFromUser();
+                        char ageToSend[PIPE_BUFFER_SIZE];
+                        sprintf_s(ageToSend, "%d", age);
+
+                        cout << "Please input the user's Street" << endl;
+                        char streetToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(streetToSend, PIPE_BUFFER_SIZE);
+
+                        cout << "Please input the user's City" << endl;
+                        char cityToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(cityToSend, PIPE_BUFFER_SIZE);
+
+                        cout << "Please input the user's Country" << endl;
+                        char countryToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(countryToSend, PIPE_BUFFER_SIZE);
+
+                        cout << "Please input the user's postal Code" << endl;
+                        char postaToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(postaToSend, PIPE_BUFFER_SIZE);
+
+                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {nameToSend, ageToSend, streetToSend, cityToSend, countryToSend, postaToSend});
+                        
                     }
                     break;
                 case 5:
@@ -150,6 +168,8 @@ void SyncedMessage(TCHAR* command, vector<TCHAR*> args)
     string newCommand = command;
     if (treatedArgs.length() > 0)
         newCommand += treatedArgs;
+
+    cout << endl << "sending: " << newCommand << endl;
     lpszMessage = cObj.StringToTCHAR(newCommand);
     
     // We could call Create File, WriteFile, ReadFile, CloseHandle, etc.

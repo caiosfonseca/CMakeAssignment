@@ -30,4 +30,6 @@ class UserProfile
             return out; 
         }
 
+        string toString();
+
 };

@@ -4,6 +4,7 @@
 #include <strsafe.h>
 
 #include "common/common.h"
+#include "common/userProfile.h"
 
 // Multithreaded pipe server based of Microsoft's
 // https://docs.microsoft.com/en-us/windows/desktop/ipc/multithreaded-pipe-server
@@ -14,6 +15,9 @@ VOID serverPrint(string Messages, bool isError = FALSE);
 
 string lastSentName = "";
 string lastSentAge = "";
+int lastId = 0;
+
+vector<UserProfile> registeredUsers;
 
 int _tmain(int argc, char* argv[])
 {
@@ -239,13 +243,17 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         // arguments we created earlier.
         for(size_t i = 0; i < nOfArguments; i++)
         {
-            newFoundAt = args.substr(lastFoundAt).find("@");
+            newFoundAt = args.find("@", lastFoundAt);
+            serverPrint("lastFoundAt = "+to_string(lastFoundAt));
             if(newFoundAt > args.length())
             {
                 newFoundAt = args.length();
             }
-            treatedArgs.push_back(args.substr(lastFoundAt, newFoundAt));
-            lastFoundAt = newFoundAt;
+            serverPrint("newFoundAt = "+to_string(newFoundAt));
+            string newArg = args.substr(lastFoundAt, newFoundAt-lastFoundAt);
+            serverPrint("New arg = "+newArg);
+            treatedArgs.push_back(newArg);
+            lastFoundAt = newFoundAt+1;
         }
     }
 
@@ -290,6 +298,29 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         response = "I see, so you are " + lastSentAge + " years old, huh?";
         if(lastSentName != "")
             response = "Hey " + lastSentName + " I promise I won't tell that you are " + lastSentAge +" years old";
+    }
+    else if(request == cObj.GetCommand(4))
+    {
+        UserProfile testUser = UserProfile();
+        testUser.Name = treatedArgs[0];
+        int age = 0;
+        try
+        {
+            age = stoi(treatedArgs[1]);
+        }
+        catch(const std::exception& e)
+        {
+            (void) e;
+        }        
+        testUser.Age = age;
+        testUser.UserAddress = Address(treatedArgs[2], treatedArgs[3], treatedArgs[4], treatedArgs[5]);
+        lastId += 1;
+        testUser.Id = lastId;
+
+        registeredUsers.push_back(testUser);
+
+        response = testUser.toString();
+
     }
 
     serverPrint("Sending = " + response);

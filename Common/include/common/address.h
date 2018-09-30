@@ -25,5 +25,6 @@ class Address
             return out; 
         }
         
+        string toString();
 
 };
