@@ -203,25 +203,40 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
 // the client and server can continue to work together while this function is running.
 {
     serverPrint(string ("CLIENT REQUEST String: ") + pchRequest );
-    CommonLib cObj;
+    // Create default server response.
     string response = "Command not recognized";
+
+    // The user sent us a string of parameters separated by a @,  we will only distinct
+    // which parameter is which and where to use them once we know which request the user sent
+
+    // Creating and Initializing vars
     size_t firstAt = 0;
     string request = pchRequest;
-    firstAt = request.find("@");
     string args = "";
     size_t nOfArguments = 0;
     vector<string> treatedArgs;
+
+    firstAt = request.find("@");
+    
     if (firstAt > request.length())
     {
+        // If we didn't find any @ we will simply set firstAt to the request length.
+        // Later we will get the request using this var.
         firstAt = request.length();
     }
     else
     {
+        // We know that all args will come after the first @ and the number of arguments is
+        // equal to the number of @ sent in the request
         args = request.substr(firstAt+1);
         nOfArguments = count(request.begin(), request.end(), '@');
+
+        // Variables creation and instancing
         size_t lastFoundAt = 0;
         size_t newFoundAt = 0;
         
+        // Now, for each @ we find on the arguments list, we will add it to the vactor of 
+        // arguments we created earlier.
         for(size_t i = 0; i < nOfArguments; i++)
         {
             newFoundAt = args.substr(lastFoundAt).find("@");
@@ -233,10 +248,11 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
             lastFoundAt = newFoundAt;
         }
     }
-    request = request.substr(0, firstAt);
 
+    request = request.substr(0, firstAt);
     serverPrint( "Treated request = " + request );
 
+    // Server printing arguments just for the sake of logging
     if(treatedArgs.size() > 0)
     {
         for(size_t i = 0; i < treatedArgs.size(); i++)
@@ -249,7 +265,8 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         serverPrint("No arguments sent");
     }
     
-
+    // Now, we will deal with the client's request and respond appropriately
+    CommonLib cObj;
     if(request == cObj.GetCommand(0))
     {
         response = "Asynchronized Hello brother!";

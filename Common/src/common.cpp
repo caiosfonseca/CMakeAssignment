@@ -9,7 +9,7 @@
 
 CommonLib::CommonLib()
 {
-    commandList = {"AsyncHello", "SyncedHello", "SendName", "SendAge", "CreateUserProfile", "UpdateAddress", "FindUserProfile"};
+    commandList = {"AsyncHello", "SyncedHello", "SendName", "SendAge", "CreateUserProfile", "UserBirthday", "FindUserProfile"};
 }
 
 int CommonLib::CommandExists(const string &value)
