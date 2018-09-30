@@ -113,24 +113,35 @@ int _tmain(int argc, TCHAR *argv[])
                         cin.getline(countryToSend, PIPE_BUFFER_SIZE);
 
                         cout << "Please input the user's postal Code" << endl;
-                        char postaToSend[PIPE_BUFFER_SIZE];
-                        cin.getline(postaToSend, PIPE_BUFFER_SIZE);
+                        char postToSend[PIPE_BUFFER_SIZE];
+                        cin.getline(postToSend, PIPE_BUFFER_SIZE);
 
-                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {nameToSend, ageToSend, streetToSend, cityToSend, countryToSend, postaToSend});
+                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {nameToSend, ageToSend, streetToSend, cityToSend, countryToSend, postToSend});
                         
                     }
                     break;
                 case 5:
                     {
                         // We will send a ASync request to run a function on the desired user
-                        // This function will return a value 
+                        // This function will return a value
                         cout << "User Birthday" << endl;
+                        cout << "Please input the user's Id you want to execute the function from" << endl;
+                        int id = GetIntFromUser();
+                        char idToSend[PIPE_BUFFER_SIZE];
+                        sprintf_s(idToSend, "%d", id);
+                        ASyncedMessage(cObj.StringToTCHAR(cObj.GetCommand(commandIndex)), {idToSend});
                     }
                     break;
                 case 6:
                     {
-                        // We will send a Sync request to get a user profile, given an id
+                        // We will send a Sync request to find a user profile, given an id
                         cout << "Find User Profile" << endl;
+                    }
+                    break;
+                case 7:
+                    {
+                        // We will send a Sync request to get a user profile, given an id
+                        cout << "Get User Profile" << endl;
                     }
                     break;
                 default:
@@ -169,7 +180,6 @@ void SyncedMessage(TCHAR* command, vector<TCHAR*> args)
     if (treatedArgs.length() > 0)
         newCommand += treatedArgs;
 
-    cout << endl << "sending: " << newCommand << endl;
     lpszMessage = cObj.StringToTCHAR(newCommand);
     
     // We could call Create File, WriteFile, ReadFile, CloseHandle, etc.

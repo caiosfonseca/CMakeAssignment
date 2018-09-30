@@ -8,7 +8,7 @@ UserProfile::UserProfile()
     Id = 0;
 }
 
-UserProfile::UserProfile(string name, int age, const Address& OtherUserAddress, int id)
+UserProfile::UserProfile(string name, int age, const Address& OtherUserAddress, size_t id)
 {
     Name = name;
     Age = age;
@@ -16,7 +16,7 @@ UserProfile::UserProfile(string name, int age, const Address& OtherUserAddress, 
     Id = id;
 }
 
-UserProfile::UserProfile(string name, int age, string Street, string City, string Country, string PostalCode, int id)
+UserProfile::UserProfile(string name, int age, string Street, string City, string Country, string PostalCode, size_t id)
 {
     Name = name;
     Age = age;
@@ -41,10 +41,11 @@ UserProfile& UserProfile::operator=(const UserProfile& other)
     return *this;
 }
 
-int UserProfile::BirthDay()
+string UserProfile::BirthDay()
 {
     Age += 1;
-    return Age;
+    string response = Name + " had a birthday, he is now " + to_string(Age) + " years old";
+    return response;
 }
 
 string UserProfile::toString(){

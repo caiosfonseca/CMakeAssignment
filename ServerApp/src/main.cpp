@@ -12,6 +12,7 @@
 DWORD WINAPI InstanceThread(LPVOID);
 VOID GetAnswerToRequest( LPTSTR pchRequest, LPTSTR pchReply, LPDWORD pchBytes );
 VOID serverPrint(string Messages, bool isError = FALSE);
+UserProfile GetUserById(size_t id);
 
 string lastSentName = "";
 string lastSentAge = "";
@@ -322,6 +323,26 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         response = testUser.toString();
 
     }
+    else if(request == cObj.GetCommand(5))
+    {
+        size_t requestedId = 0;
+        
+        try
+        {
+            requestedId = stoi(treatedArgs[0]);
+        }
+        catch(const std::exception& e)
+        {
+            (void) e;
+        }  
+        
+        UserProfile result = GetUserById(requestedId);
+        cout << result;
+
+        response = "No user with such id";
+        if(result.Id != 0)
+            response = result.BirthDay();
+    }
 
     serverPrint("Sending = " + response);
     // Check the outgoing message to make sure it's not too long for the buffer.
@@ -344,4 +365,15 @@ VOID serverPrint(string Message, bool isError)
         Log = "ERROR";
         
     _tprintf("Server %s: %s\n", Log.c_str(), Message.c_str());
+}
+
+UserProfile GetUserById(size_t id)
+{
+    
+    for(size_t i = 0; i < registeredUsers.size(); i++)
+    {
+        if(registeredUsers[i].Id == id)
+            return registeredUsers[i];
+    }
+    return UserProfile();
 }

@@ -10,14 +10,14 @@ class UserProfile
         string Name;
         int Age;
         Address UserAddress;
-        int Id;
+        size_t Id;
 
         UserProfile();
-        UserProfile(string name, int age, const Address& UserAddress, int id);
-        UserProfile(string name, int agege, string Street, string City, string Country, string PostalCode, int id);
+        UserProfile(string name, int age, const Address& UserAddress, size_t id);
+        UserProfile(string name, int agege, string Street, string City, string Country, string PostalCode, size_t id);
         UserProfile(const UserProfile& other);
 
-        int BirthDay();
+        string BirthDay();
 
         UserProfile& operator=(const UserProfile& other);
 
