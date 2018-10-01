@@ -410,7 +410,7 @@ VOID serverPrint(string Message, bool isError)
 
 UserProfile GetUserById(size_t id)
 {
-    
+    // Search for a user by it's ID and returns it or an empy user if not found.   
     for(size_t i = 0; i < registeredUsers.size(); i++)
     {
         if(registeredUsers[i].Id == id)
@@ -421,13 +421,17 @@ UserProfile GetUserById(size_t id)
 
 string FindUserByName(string name)
 {
+    // Searchs a user by part of it's name, case sensitive.
     string result = "User not found";
     string response = "We found :";
 
+    // Formats each user with it's name, id and age for easier choosing
     for(size_t i = 0; i < registeredUsers.size(); i++)
     {
         if(registeredUsers[i].Name.find(name) <= registeredUsers[i].Name.length())
-            response += "{ \"Name\" : \""+ registeredUsers[i].Name + "\", \"ID\" : " + to_string(registeredUsers[i].Id) + ", \"Age\" : " + to_string(registeredUsers[i].Age) + " }\n";
+            response += "{ \"Name\" : \""+ registeredUsers[i].Name + "\","+
+                "\"ID\" : " + to_string(registeredUsers[i].Id) + ","+
+                "\"Age\" : " + to_string(registeredUsers[i].Age) + " }\n";
     }
 
     if(response != "We found :")
@@ -437,7 +441,7 @@ string FindUserByName(string name)
 }
 
 void ReadJSONFile()
-// Simple routine to read config file and set variables
+// Simple routine to read JSON file and create a vector of registered users
 {
     ifstream openedFile("data.json");
 
@@ -447,6 +451,8 @@ void ReadJSONFile()
     vector<json> tempUsers;
     vector<UserProfile> newUsers;
 
+    // If the file exists we will transform the JSON Vector to a vector of UserProfile
+    // If not, we return an empty vector of UserProfile
     if(openedFile.is_open())
     {
         if(!FileIsEmpty(openedFile))
@@ -464,6 +470,9 @@ void ReadJSONFile()
 
 void WriteJSONFile(json j)
 {
+    // Simple file writer
+    // We will always rewrite the whole file, instead of just adding the new user
+    // For the sake of simplicity
     ofstream oFile;
 
     json newJson;
@@ -478,6 +487,7 @@ void WriteJSONFile(json j)
 
 json JsonFromVectorOfUsers(vector<UserProfile> users)
 {
+    // This function will iterate a vector of UserProfile and generate a JSON from it's contents
     json userList;
     UserProfile tempUser;
     for(vector<UserProfile>::iterator it = users.begin(); it < users.end(); it++)
@@ -486,13 +496,15 @@ json JsonFromVectorOfUsers(vector<UserProfile> users)
         userList.push_back(tempUser.toJson());
     }
 
-    cout << setw(4) << userList << endl;
+    // cout << setw(4) << userList << endl;
 
     return userList;
 }
 
 vector<UserProfile> VectorOfusersFromJson(vector<json> users)
 {
+    // Similar to JsonFromVectorOfUsers, but in this case it's pretty much the reverse
+    // We will create a vector of UserProfile, given a vector of json
     vector<UserProfile> userList;
 
     UserProfile tempUser;
@@ -507,5 +519,6 @@ vector<UserProfile> VectorOfusersFromJson(vector<json> users)
 
 bool FileIsEmpty(std::ifstream& pFile)
 {
+    // Simple check for file is empty
     return pFile.peek() == std::ifstream::traits_type::eof();
 }

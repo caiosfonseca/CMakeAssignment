@@ -28,8 +28,9 @@ class Address
             return out; 
         }
         
+        // Convert the object to a formated string
         string toString();
-
+        // Converte the object to a JSON
         json toJson();
 
 };

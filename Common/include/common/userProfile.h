@@ -17,6 +17,7 @@ class UserProfile
         UserProfile(string name, int agege, string Street, string City, string Country, string PostalCode, size_t id);
         UserProfile(const UserProfile& other);
 
+        // Function that will simply add 1 to the user's age
         string BirthDay();
 
         UserProfile& operator=(const UserProfile& other);
@@ -30,9 +31,12 @@ class UserProfile
             return out; 
         }
 
+        // Returns the object as a formated string
         string toString();
 
+        // Returns the object as a JSON
         json toJson();
+        // Converts a JSON to the object
         UserProfile UserProfile::FromJson(const json & value);
 
 };
