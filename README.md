@@ -81,6 +81,7 @@ Following the specifications we created a CMake Project for a server/client appl
 #### Requests and Storage
 
 The goal of our application is to be simple and efficient. From our Web Development knowledge, we believe that when talking about simple and efficient servers, one type of service that comes to mind is that of [RESTful](https://searchmicroservices.techtarget.com/definition/REST-representational-state-transfer) applications, in simple terms we will make a stateless server, that will treat each request as it's own contained task.
+
 Regarding storage, we decided to have a json file to store our server data, so it persists between sessions.
 
   
@@ -93,8 +94,11 @@ After researching around, mostly at Microsoft's documentation, about how to use 
 
 Create a Common Library for both Client and Server applications to have some util functions and to store all the possible commands(requests).
 Also contain a Address and a UserProfile classes.
+
 Address has Street, City, Country and Postal Code as attributes, all std::strings.
+
 UserProfile has a std::string Name, an int Age, an Address UserAddress and a std::size_t Id.
+
 These classes will be used as the custom object requirement from the task.
 
 We created the following commands, which can be called by the command name or index.
@@ -165,6 +169,7 @@ Thread Loop
 #### Implementation changes on Client
 
 While implementating I realized that I could create a synchronous call (SyncedMessage) to the server using CallNamedPipe, which automatically handles CreateFile, WaitNamedpipe, TransactNamedPipe and CloseHandle in one single call, so instead of making at least 4 calls we do one to CallNamedPipe passing our parameters, like a timeout of 20 seconds, and it handles everything for us.
+
 Once we had a synchronous call, we decided to make the ASynchronous call be a thread that calls our SyncedMessage function. Since it's a thread it will run independently of our client main loop and it won't have problems of handling with Asynchronous Server I/O, because it's a synchronous call to the essence.
 
   
