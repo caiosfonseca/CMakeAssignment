@@ -56,3 +56,14 @@ string UserProfile::toString(){
     result += "Address: " + UserAddress.toString() + "\n";
     return result; 
 }
+
+json UserProfile::toJson()
+{
+    json jStructure = {
+    {"Id", Id},
+    {"Name", Name},
+    {"Age", Age},
+    {"Address", UserAddress.toJson()},
+    };
+    return jStructure;
+}

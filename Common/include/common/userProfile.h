@@ -32,4 +32,6 @@ class UserProfile
 
         string toString();
 
+        json toJson();
+
 };

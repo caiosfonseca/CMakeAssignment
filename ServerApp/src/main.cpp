@@ -31,10 +31,14 @@ int _tmain(int argc, char* argv[])
 
     serverPrint("Hello, CMake Server!");
 
+    //Testing
     Address testAddress = Address("1316 Carling Ave", "Ottawa", "Canada", "K1Z7L0");
     Address testAddress2 = Address("316 Bronson Avenue", "Ottawa", "Canada", "K1Z7L1");
     UserProfile testUser = UserProfile("Caio Souza Fonseca", 26, testAddress, 1);
     UserProfile testUser2 = UserProfile("Priscila Ferreira de Lima Fonseca", 29, testAddress2, 2);
+
+    cout << testAddress.toJson() << endl;
+    cout << testUser.toJson() << endl;
 
     registeredUsers.push_back(testUser);
     registeredUsers.push_back(testUser2);
@@ -426,7 +430,7 @@ string FindUserByName(string name)
     for(size_t i = 0; i < registeredUsers.size(); i++)
     {
         if(registeredUsers[i].Name.find(name) <= registeredUsers[i].Name.length())
-            response += "{ User = "+ registeredUsers[i].Name + " ID = " + to_string(registeredUsers[i].Id) + " Age = " + to_string(registeredUsers[i].Age) + " }\n";
+            response += "{ \"Name\" : \""+ registeredUsers[i].Name + "\", \"ID\" : " + to_string(registeredUsers[i].Id) + ", \"Age\" : " + to_string(registeredUsers[i].Age) + " }\n";
     }
 
     if(response != "We found :")

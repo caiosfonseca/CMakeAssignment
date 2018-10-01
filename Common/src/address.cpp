@@ -41,3 +41,14 @@ string Address::toString(){
     result += "PostalCode: " + PostalCode + "\n";
     return result; 
 }
+
+json Address::toJson()
+{
+    json jStructure = {
+    {"Street", Street},
+    {"City", City},
+    {"Country", Country},
+    {"Postal Code", PostalCode},
+    };
+    return jStructure;
+}

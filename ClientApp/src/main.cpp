@@ -5,6 +5,7 @@
 #include "common/common.h"
 #include "common/userProfile.h"
 
+
 // Client pipe based of Microsoft's
 // https://docs.microsoft.com/en-us/windows/desktop/ipc/named-pipe-client
 // https://docs.microsoft.com/en-us/windows/desktop/ipc/transactions-on-named-pipes
@@ -31,6 +32,7 @@ int _tmain(int argc, TCHAR *argv[])
     CommonLib cObj;
     string availableCommands = cObj.GetCommandListAsString();
     int commandIndex;
+
 
     do {
         // Run this loop while the client doesn't input "Exit"
