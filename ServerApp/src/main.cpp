@@ -20,6 +20,7 @@ void ReadJSONFile();
 json JsonFromVectorOfUsers(vector<UserProfile> users);
 vector<UserProfile> VectorOfusersFromJson(vector<json> users);
 void WriteJSONFile(json j);
+int GetUserIndexById(size_t id);
 
 bool FileIsEmpty(std::ifstream& pFile);
 
@@ -357,6 +358,9 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         response = "No user with such id";
         if(result.Id != 0)
             response = result.BirthDay();
+            int indexFound = GetUserIndexById(result.Id);
+            registeredUsers[indexFound] = result;
+            WriteJSONFile(JsonFromVectorOfUsers(registeredUsers));
     }
     else if(request == cObj.GetCommand(6))// Search for a user given his name
     {
@@ -417,6 +421,17 @@ UserProfile GetUserById(size_t id)
             return registeredUsers[i];
     }
     return UserProfile();
+}
+
+int GetUserIndexById(size_t id)
+{
+    // Search for a user by it's ID and returns it or an empy user if not found.   
+    for(size_t i = 0; i < registeredUsers.size(); i++)
+    {
+        if(registeredUsers[i].Id == id)
+            return i;
+    }
+    return -1;
 }
 
 string FindUserByName(string name)
