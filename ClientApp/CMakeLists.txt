@@ -19,3 +19,5 @@ add_executable(ClientApp ${SOURCES})
 target_link_libraries(${PROJECT_NAME}
     commonLib
 )
+
+install (TARGETS ClientApp DESTINATION bin)

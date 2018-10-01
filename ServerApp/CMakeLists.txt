@@ -19,3 +19,5 @@ add_executable(ServerApp ${SOURCES})
 target_link_libraries(${PROJECT_NAME}
     commonLib
 )
+
+install (TARGETS ServerApp DESTINATION bin)
