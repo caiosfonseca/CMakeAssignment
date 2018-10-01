@@ -33,5 +33,6 @@ class UserProfile
         string toString();
 
         json toJson();
+        UserProfile UserProfile::FromJson(const json & value);
 
 };

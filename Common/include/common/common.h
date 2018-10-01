@@ -21,8 +21,6 @@ class CommonLib
     public:
         CommonLib();
 
-        void ReadConfigFile();
-
         int CommandExists(const string &value);
         string GetCommandListAsString();
         string GetCommand(const int &val);

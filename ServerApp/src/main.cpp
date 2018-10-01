@@ -2,6 +2,8 @@
 #include <string>
 #include <tchar.h>
 #include <strsafe.h>
+#include <iomanip>
+#include <fstream>
 
 #include "common/common.h"
 #include "common/userProfile.h"
@@ -14,10 +16,15 @@ VOID GetAnswerToRequest( LPTSTR pchRequest, LPTSTR pchReply, LPDWORD pchBytes );
 VOID serverPrint(string Messages, bool isError = FALSE);
 UserProfile GetUserById(size_t id);
 string FindUserByName(string name);
+void ReadJSONFile();
+json JsonFromVectorOfUsers(vector<UserProfile> users);
+vector<UserProfile> VectorOfusersFromJson(vector<json> users);
+void WriteJSONFile(json j);
+
+bool FileIsEmpty(std::ifstream& pFile);
 
 string lastSentName = "";
 string lastSentAge = "";
-int lastId = 0;
 
 vector<UserProfile> registeredUsers;
 
@@ -30,18 +37,8 @@ int _tmain(int argc, char* argv[])
     DWORD dwThreadId = 0;                           // Sore thread ID
 
     serverPrint("Hello, CMake Server!");
-
-    //Testing
-    Address testAddress = Address("1316 Carling Ave", "Ottawa", "Canada", "K1Z7L0");
-    Address testAddress2 = Address("316 Bronson Avenue", "Ottawa", "Canada", "K1Z7L1");
-    UserProfile testUser = UserProfile("Caio Souza Fonseca", 26, testAddress, 1);
-    UserProfile testUser2 = UserProfile("Priscila Ferreira de Lima Fonseca", 29, testAddress2, 2);
-
-    cout << testAddress.toJson() << endl;
-    cout << testUser.toJson() << endl;
-
-    registeredUsers.push_back(testUser);
-    registeredUsers.push_back(testUser2);
+    ReadJSONFile();
+    cout << "We have " << registeredUsers.size() << " user(s) registered" << endl;
 
     // The main loop runs an infinite for loop.
     // For each loop's iteraction, a NamedPipe instance is created and waits for a client connection
@@ -330,11 +327,11 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         }        
         testUser.Age = age;
         testUser.UserAddress = Address(treatedArgs[2], treatedArgs[3], treatedArgs[4], treatedArgs[5]);
-        lastId += 1;
-        testUser.Id = lastId;
+        testUser.Id = registeredUsers.size() + 1;
 
         // Add our new user profile to the registered users vector
         registeredUsers.push_back(testUser);
+        WriteJSONFile(JsonFromVectorOfUsers(registeredUsers));
 
         // Send the new user as reponse
         response = testUser.toString();
@@ -437,4 +434,78 @@ string FindUserByName(string name)
         result = response;
 
     return result;
+}
+
+void ReadJSONFile()
+// Simple routine to read config file and set variables
+{
+    ifstream openedFile("data.json");
+
+    string val = "";
+    json j;
+    j["RegisteredUsers"] = {};
+    vector<json> tempUsers;
+    vector<UserProfile> newUsers;
+
+    if(openedFile.is_open())
+    {
+        if(!FileIsEmpty(openedFile))
+        {
+            openedFile >> j; 
+            // cout << setw(4) << j << endl;
+            tempUsers = j["RegisteredUsers"].get<vector<json>>();
+            newUsers = VectorOfusersFromJson(tempUsers);
+        }
+        openedFile.close();
+    }
+
+    registeredUsers = newUsers;
+}
+
+void WriteJSONFile(json j)
+{
+    ofstream oFile;
+
+    json newJson;
+
+    newJson["RegisteredUsers"] = {j}; 
+
+    oFile.open("data.json");
+
+    oFile << setw(4) << newJson << endl;
+    oFile.close();
+}
+
+json JsonFromVectorOfUsers(vector<UserProfile> users)
+{
+    json userList;
+    UserProfile tempUser;
+    for(vector<UserProfile>::iterator it = users.begin(); it < users.end(); it++)
+    {
+        tempUser = *it;
+        userList.push_back(tempUser.toJson());
+    }
+
+    cout << setw(4) << userList << endl;
+
+    return userList;
+}
+
+vector<UserProfile> VectorOfusersFromJson(vector<json> users)
+{
+    vector<UserProfile> userList;
+
+    UserProfile tempUser;
+    for(vector<json>::iterator it = users.begin(); it < users.end(); it++)
+    {
+        tempUser = tempUser.FromJson(*it);
+        userList.push_back(tempUser);
+    }
+
+    return userList;
+}
+
+bool FileIsEmpty(std::ifstream& pFile)
+{
+    return pFile.peek() == std::ifstream::traits_type::eof();
 }

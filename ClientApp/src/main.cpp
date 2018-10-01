@@ -114,7 +114,7 @@ int _tmain(int argc, TCHAR *argv[])
                         char countryToSend[PIPE_BUFFER_SIZE];
                         cin.getline(countryToSend, PIPE_BUFFER_SIZE);
 
-                        cout << "Please input the user's postal Code" << endl;
+                        cout << "Please input the user's Postal Code" << endl;
                         char postToSend[PIPE_BUFFER_SIZE];
                         cin.getline(postToSend, PIPE_BUFFER_SIZE);
 

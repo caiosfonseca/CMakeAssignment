@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <fstream>
 #include <windows.h>
 #include <iterator>
 
@@ -51,39 +50,6 @@ string CommonLib::GetCommandListAsString()
             result += ", ";
     }
     return result;
-}
-
-void CommonLib::ReadConfigFile()
-// Simple routine to read config file and set variables
-{
-    ifstream inFile;
-
-    inFile.open("..\\..\\..\\config.txt");
-
-    if (!inFile)
-    {
-        inFile.open("config.txt");
-        if(!inFile)
-        {
-            cerr << "Unable to open file config.txt on project root";
-            exit(1);
-        }
-    }
-
-    string val = "";
-
-    while (inFile >> val)
-    {
-        cout << "Read :" << val << endl;
-        // if (val.substr(0, pipePrefix.size()) == pipePrefix)
-        // {
-        //     pipeName = val.substr(pipePrefix.size()+1, val.size()-pipePrefix.size()-2);
-        //     cout<<pipeName<<endl;
-        //     cout << typeid(pipeName).name() << endl;
-        // }
-    }
-
-    inFile.close();
 }
 
 TCHAR* CommonLib::StringToTCHAR(const string &value){

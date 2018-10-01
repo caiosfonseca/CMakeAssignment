@@ -67,3 +67,16 @@ json UserProfile::toJson()
     };
     return jStructure;
 }
+
+UserProfile UserProfile::FromJson(const json & value)
+{
+    Name = value[ "Name" ];
+    Id = value[ "Id" ];
+    Age = value[ "Age" ];
+    UserAddress.Street = value[ "Address" ]["Street"];
+    UserAddress.City = value[ "Address" ]["City"];
+    UserAddress.Country = value[ "Address" ]["Country"];
+    UserAddress.PostalCode = value[ "Address" ]["Postal Code"];
+    return *this;
+}
+
