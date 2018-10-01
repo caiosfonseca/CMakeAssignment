@@ -335,7 +335,7 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         WriteJSONFile(JsonFromVectorOfUsers(registeredUsers));
 
         // Send the new user as reponse
-        response = testUser.toString();
+        response = testUser.toJson().dump();
     }
     else if(request == cObj.GetCommand(5))// Execute birthday function
     {
@@ -386,7 +386,7 @@ VOID GetAnswerToRequest( LPTSTR pchRequest,
         // If the user was found we return him as a response
         response = "No user with such id";
         if (result.Id != 0)
-            response = result.toString();
+            response = result.toJson().dump();
     }
 
     serverPrint("Sending = " + response);
