@@ -8,10 +8,10 @@
   - [The Goal](#the-goal)
     - [Requests and Storage](#requests-and-storage)
   - [Application structure](#application-structure)
-    -[CommonLib](#commonlib)
-    -[Client](#client)
-    -[Server](#server)
-    -[Implementation changes on Client](#implementation-changes-on-client)
+    - [CommonLib](#commonlib)
+    - [Client](#client)
+    - [Server](#server)
+    - [Implementation changes on Client](#implementation-changes-on-client)
   - [Source Code](#source-code)
 
   
