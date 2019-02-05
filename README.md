@@ -1,5 +1,5 @@
 
-# CPP CMake NamedPipe Assignment
+# CPP CMake NamedPipe Client and Server
 
 - [Introduction](#introduction)
 - [Requirements](#requirements)
